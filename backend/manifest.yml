@@ -1,0 +1,143 @@
+name: FoodApp
+
+entities:
+  User:
+    authenticable: true
+    properties:
+      - name
+      - name: email
+        type: email
+      - name: role
+        type: choice
+        options:
+          values: [admin, user]
+        default: user
+    policies:
+      create:
+        - access: admin
+      read:
+        - access: restricted
+          allow: User
+          condition: self
+      update:
+        - access: restricted
+          allow: User
+          condition: self
+      delete:
+        - access: admin
+      signup:
+        - access: public
+
+  Restaurant:
+    properties:
+      - name: name
+        type: string
+      - name: description
+        type: text
+      - name: address
+        type: string
+      - name: photo
+        type: image
+        options:
+          sizes:
+            thumbnail:
+              width: 400
+              height: 250
+      - name: cuisine
+        type: choice
+        options:
+          values: [Italian, Mexican, Chinese, Indian, American, Other]
+    belongsTo:
+      - name: owner
+        entity: User
+    policies:
+      create:
+        - access: restricted
+          allow: User
+      read:
+        - access: public
+      update:
+        - access: restricted
+          allow: User
+          condition: self
+      delete:
+        - access: restricted
+          allow: User
+          condition: self
+
+  MenuItem:
+    properties:
+      - name: name
+        type: string
+      - name: description
+        type: text
+      - name: price
+        type: money
+        options:
+          currency: 'USD'
+      - name: photo
+        type: image
+        options:
+          sizes:
+            thumbnail:
+              width: 150
+              height: 150
+      - name: category
+        type: choice
+        options:
+          values: [Appetizer, Main Course, Dessert, Beverage]
+    belongsTo:
+      - name: restaurant
+        entity: Restaurant
+    policies:
+      create:
+        - access: restricted
+          allow: User
+      read:
+        - access: public
+      update:
+        - access: restricted
+          allow: User
+      delete:
+        - access: restricted
+          allow: User
+
+  Order:
+    properties:
+      - name: status
+        type: choice
+        options:
+          values: [Pending, Confirmed, Delivered, Canceled]
+        default: Pending
+      - name: totalPrice
+        type: money
+        options:
+          currency: 'USD'
+    belongsTo:
+      - name: customer
+        entity: User
+    belongsToMany:
+      - name: items
+        entity: MenuItem
+    policies:
+      create:
+        - access: restricted
+          allow: User
+      read:
+        - access: restricted
+          allow: User
+          condition: self
+      update:
+        - access: restricted
+          allow: User
+          condition: self
+      delete:
+        - access: admin
+
+# Health check endpoint for connection testing
+endpoints:
+  health:
+    path: /api/health
+    method: GET
+    policies: []
+    handler: healthCheck
